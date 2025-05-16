@@ -1,0 +1,54 @@
+# Concatenation
+concate_afdb_esm_with_fragments() {
+  esm_path="databases/esm/metagenomic_atlas/union/foldseekdb";
+  esm_filename="esmatlas_union";
+
+  afdb_path="/databases/foldseek/afdb";
+  afdb_filename="afdb";
+
+  output_path="databases";
+  output_filename="afesm";
+
+  echo "$FUNCNAME called";
+
+  foldseek concatdbs $afdb_path/$afdb_filename $esm_path/$esm_filename $output_path/$output_filename;
+  echo "regular files are concatenated";
+
+  foldseek concatdbs $afdb_path/$afdb_filename"_h" $esm_path/$esm_filename"_h" $output_path/$output_filename"_h";
+  echo "_h files are concatenated";
+  
+  foldseek concatdbs $afdb_path/$afdb_filename"_ss" $esm_path/$esm_filename"_ss" $output_path/$output_filename"_ss";
+  echo "_ss files are concatenated";
+
+  foldseek concatdbs $afdb_path/$afdb_filename"_ca" $esm_path/$esm_filename"_ca" $output_path/$output_filename"_ca";
+  echo "_ca files are concatenated";
+
+  echo "$output_path/$output_filename is made";
+  echo "$FUNCNAME finished";
+}
+
+# Sequence clustering
+seq_cluster_afesm() {
+  echo "$FUNCNAME called";
+
+  srun_header="srun -p compute -w super001 -c 64 -t 14-0 ";
+  $srun_header mkdir -p /mnt/scratch/;
+  $srun_header mmseqs cluster databases/afesm clusters/afesm30 /mnt/scratch/tmp --min-seq-id 0.3 --cov-mode 1 -c 0.9
+  
+  echo "sequnce clustering is done: clusters/afesm30";
+
+  echo "$FUNCNAME finished";
+}
+
+# Alignment
+alignment_afesm_seq_cluster() {
+  echo "$FUNCNAME called";
+  output_path="/home/jingi/esmfold_analysis";
+  
+  srun_header="srun -p compute -w super003 -c 128 -t 14-0 ";
+  $srun_header mmseqs align databases/afesm databases/afesm clusters/afesm30 $output_path/alignment/afesm30_aln -a  -e inf
+  mmseqs convertalis databases/afesm databases/afesm $output_path/alignment/afesm30_aln $output_path/alignment/afesm30_aln_query_target_qcov_tcov_qlen_tlen_alnlen --format-output query,target,qcov,tcov,qlen,tlen,alnlen
+
+  echo "$FUNCNAME finished";
+}
+
