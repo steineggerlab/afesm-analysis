@@ -1,4 +1,6 @@
-# Concatenation
+##############################
+###### Concatenation    ######
+##############################
 concate_afdb_esm_with_fragments() {
   esm_path="databases/esm/metagenomic_atlas/union/foldseekdb";
   esm_filename="esmatlas_union";
@@ -27,7 +29,9 @@ concate_afdb_esm_with_fragments() {
   echo "$FUNCNAME finished";
 }
 
-# Sequence clustering
+####################################
+###### Sequence clustering    ######
+####################################
 seq_cluster_afesm() {
   echo "$FUNCNAME called";
 
@@ -40,7 +44,9 @@ seq_cluster_afesm() {
   echo "$FUNCNAME finished";
 }
 
-# Alignment
+##########################
+###### Alignment    ######
+##########################
 alignment_afesm_seq_cluster() {
   echo "$FUNCNAME called";
   output_path="/home/jingi/esmfold_analysis";
@@ -52,3 +58,68 @@ alignment_afesm_seq_cluster() {
   echo "$FUNCNAME finished";
 }
 
+#######################################
+###### Sequence rep selection    ######
+#######################################
+# map plddt to it
+> ~/esmfold_analysis$
+awk 'FNR==NR {plddt[$1]=$2; next} $2 in plddt {print $0"\t"plddt[$2]}' metadata/concat-entryId_plddt.tsv alignment/afesm30_aln_query_target_qcov_tcov > alignment/afesm30_aln_query_target_qcov_tcov_tplddt.tsv
+awk 'FNR==NR {plddt[$1]=$2; next} $2 in plddt {print $0"\t"plddt[$2]}' metadata/concat-entryId_plddt.tsv alignment/afesm30_aln_query_target_qcov_tcov_qlen_tlen_alnlen > alignment/afesm30_aln_query_target_qcov_tcov_qlen_tlen_alnlen_tplddt.tsv
+
+# pick qcov > 0.9 & highest plddt protein in each clusters
+awk '$3 < 0.9 {next;} \
+  !($1 in id) {id[$1]=$2; plddt[$1]=$5; qcov[$1]= $3; next;} \
+  $1 in id && plddt[$1] < $5 {id[$1]=$2; qcov[$1]=$3; plddt[$1]=$5; next;} \
+  END { for (key in id) print key"\t"id[key]"\t"qcov[key]"\t"plddt[key]}' \
+  alignment/afesm30_aln_query_target_qcov_tcov_tplddt.tsv > alignment/afesm30-repid_picked_qcov_plddt.tsv
+
+# pick the ids
+awk '{print $2}' alignment/afesm30-repid_picked_qcov_plddt.tsv > alignment/afesm30-pickedIds
+
+# number of alteration
+awk '{n+=1;} $1!=$2 {d+=1;} END {print d"\t"n"\t"d/n*100}' alignment/afesm30-repid_picked_qcov_plddt.tsv > alignment/afesm30-nAltered_nCluster_pAltered.tsv
+# result
+# 7143059 186567771       3.82867
+
+# pick tlen/qlen >= 0.7 & highest plddt protein in each clusters
+awk '$6/$5 < 0.7 {next;} \
+  !($1 in id) {id[$1]=$2; plddt[$1]=$8; tlen2qlen[$1]= $6/$5; next;} \
+  $1 in id && plddt[$1] < $8 {id[$1]=$2; tlen2qlen[$1]=$6/$5; plddt[$1]=$8; next;} \
+  END { for (key in id) print key"\t"id[key]"\t"tlen2qlen[key]"\t"plddt[key]}' \
+  alignment/afesm30_aln_query_target_qcov_tcov_qlen_tlen_alnlen_tplddt.tsv > alignment/afesm30_tlen70-repid_picked_tlen2qlen_plddt.tsv
+
+# pick the ids
+awk '$4 >= 60 {print $2}' alignment/afesm30_tlen70-repid_picked_tlen2qlen_plddt.tsv > alignment/afesm30_tlen70_plddt60-pickedIds
+
+# createdb
+createsubdb_seq_cluster() {
+  echo "$FUNCNAME called";
+  output_path="/fast/jingi/esmfold/databases";
+  
+  ids="/home/jingi/esmfold_analysis/alignment/afesm30_tlen70_plddt60-pickedIds";
+
+  foldseek createsubdb $ids /fast/jingi/esmfold/databases/afesm $output_path/afesm30_repseq --id-mode 1
+  foldseek createsubdb $output_path/afesm30_repseq.index $output_path/afesm_ss $output_path/afesm30_repseq_ss
+  foldseek createsubdb $output_path/afesm30_repseq.index $output_path/afesm_ca $output_path/afesm30_repseq_ca
+
+  echo "$FUNCNAME finished";
+}
+
+#####################################
+###### Structure clustering    ######
+#####################################
+struct_cluster_afesm() {
+#  970  2023/06/09 12:36:48 ./scripts/cluster_tmp.sh struct_cluster_afesm
+#  971  2023/06/13 12:49:05 ls
+#  972  2023/06/13 12:49:20 history
+  echo "$FUNCNAME called";
+
+  srun_header="srun -p compute -w super003 -c 128 -t 60-0 ";
+  foldseek="/home/jingi/foldseek_230523/bin/foldseek";
+  $srun_header mkdir -p /mnt/scratch/jingi;
+  $srun_header $foldseek cluster databases/afesm30_repseq clusters/afesm30_repseq_foldseek_clu /mnt/scratch/jingi/tmp01 -c 0.9 -e 0.01;
+  
+  echo "structure clustering is done: clusters/afesm30_repseq_foldseek_clu";
+
+  echo "$FUNCNAME finished";
+}
