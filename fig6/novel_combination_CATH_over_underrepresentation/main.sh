@@ -61,8 +61,9 @@ CATH_cntA_cntB_testtype_pval_padjusted_direction_log2FC_-log10p-adj.tsv
 # CATH_count_meanDomain.tsv
 
 # "cath_name"
-# cath-names.tsv   # from cath-names.txt  pandas code in the 'volcano-FINAL.ipynb'
+# download 'cath-names.txt from CATH ftp site (v 4.3.3) and run : python3 fix_cath-names.py
 
+# required datasets for the complted table
 nNovelPair="../data/components-novelMDP-GH-CATH_sumClu_sumNmem_sumNallMem_CATHname.tsv"  
 nDomain="../data/CATH_count_meanDomain.tsv"
 cathname="../data/cath-names.tsv"
