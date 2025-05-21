@@ -125,8 +125,4 @@ output="../data/ESM-only/compilation_table/TABLE-ID_isMDP_hasTpair_hasGHpair_isN
 # "/fast/yewon/finalized_MDP_analysis/data/ESM-only/tmp_all_CATH_pairs/ALL_copairs-ESM-updated-TED-incNs-repID_nAssemblies_nMem_nAllMem_repPlddt_avgPlddt_sortedCombi_novelPair.tsv"
 # MGYP000001210011        22      3       6       87.6    77.6 
 
-
  
-/home/livinit/share/afesm6/15_n_genus/afesm30-repId_allmemId_flag_taxId.tsv
-
-MGYP000635553862
