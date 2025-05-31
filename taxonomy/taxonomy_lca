@@ -1,0 +1,18 @@
+# Map the sequence members to their parents in the foldseek clusters
+awk 'FNR==NR {id[$2]=$1; next} {print id[$1]"\t"id[$2]}' /fast/livinit/esmfold/databases/afesm.lookup cluster/afesm30-repId_allmemId_flag.tsv > cluster/afesm30_allmem_numeric-repId_allmemId.tsv
+mmseqs tsv2db cluster/afesm30_allmem_numeric-repId_allmemId.tsv cluster/afesm30-repId_allmemId_flag --output-dbtype 6
+
+# lca computation
+mmseqs lca /fast/jingi/esmfold/databases/afesm ../afesm5/cluster/afesm30-repId_allmemId_flag 15_n_genus/tax_lca/afesm30_allMem_lca_blacklist --blacklist 12908,28384,2,2157 > 15_n_genus/tax_lca/log_blacklist
+mmseqs taxonomyreport /fast/jingi/esmfold/databases/afesm 15_n_genus/tax_lca/afesm30_allMem_lca_blacklist 15_n_genus/tax_lca/afesm30_allMem_lca_blacklist_report
+mmseqs createtsv /fast/jingi/esmfold/databases/afesm 15_n_genus/tax_lca/afesm30_allMem_lca_blacklist 15_n_genus/tax_lca/afesm30_allMem_lca_blacklist.tsv
+
+# jupyter/descendant_mapper.ipynb
+# output: coreness/grouping_w_merged_dmp_gtdb-taxId_taxName_taxRank_groupName.tsv
+
+# lca non singleton
+awk 'FNR==NR {id[$1]=1; next;} $1 in id {print $0}' ../afesm5/metadata/afesm30_repseq_foldseek_clu_nonsingleton-repId_nMem.tsv 15_n_genus/tax_lca/afesm30_allMem_lca_blacklist.tsv > 15_n_genus/afesm30_repseq_foldseek_clu_nonsingleton_allMem_lca_blacklist.tsv
+# grouping the lca non singletons
+awk -F "\t" 'FNR==NR {id[$1]=$NF; next} {print $0"\t"id[$2]}' coreness/grouping_w_merged_dmp_gtdb-taxId_taxName_taxRank_groupName.tsv 15_n_genus/afesm30_repseq_foldseek_clu_nonsingleton_allMem_lca_blacklist.tsv > 15_n_genus/afesm30_repseq_foldseek_clu_nonsingleton_allMem_lca_blacklist-repId_taxId_taxRank_taxName_groupName.tsv
+
+# Plot with 15_tax_LCA.ipynb

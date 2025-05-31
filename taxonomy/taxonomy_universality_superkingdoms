@@ -1,0 +1,19 @@
+
+# superkingdom name mapping to the members
+awk -F "\t" 'FNR==NR {id[$1]=$3"\t"$4; next;} $4 in id && !($1"\t"id[$4] in k) {k[$1"\t"id[$4]]=1; print $1"\t"id[$4]}' coreness/grouping_w_merged_dmp_gtdb-taxId_taxName_superkingdomId_superkingdomName.tsv 15_n_genus/afesm30_repseq_foldseek_clu_nonsingleton-repId_allmemId_flag_taxId.tsv > 15_n_genus/afesm30_repseq_foldseek_clu_nonsingleton-repId_superkingdom_superkingdomName.tsv
+# map superkingdom ~ lcaGroup
+awk -F "\t" 'FNR==NR {id[$1]=$2"\t"$3"\t"$4"\t"$5; next;} $1 in id {print $0"\t"id[$1]}' 15_n_genus/afesm30_repseq_foldseek_clu_nonsingleton_allMem_lca_blacklist-repId_taxId_taxRank_taxName_groupName.tsv 15_n_genus/afesm30_repseq_foldseek_clu_nonsingleton-repId_superkingdom_superkingdomName.tsv > 15_n_genus/afesm30_repseq_foldseek_clu_nonsingleton-repId_genus_genusName_superkingdom_superkingdomName_lcaId_lcaRank_lcaName_lcaGroupName.tsv
+# $ head 15_n_genus/afesm30_repseq_foldseek_clu_nonsingleton-repId_genus_genusName_superkingdom_superkingdomName_lcaId_lcaRank_lcaName_lcaGroupName.tsv
+# AF-A0A009EU25-F1-model_v4       4000002 Bacteria        4000002 superkingdom    Bacteria        superkingdom
+# AF-A0A009FAC9-F1-model_v4       4000002 Bacteria        4000004 class   Gammaproteobacteria     lower than superkingdom
+# AF-A0A009FRL1-F1-model_v4       4000002 Bacteria        131567  no rank cellular organisms      cellular organism
+# AF-A0A009FRL1-F1-model_v4       2759    Eukaryota       131567  no rank cellular organisms      cellular organism
+# AF-A0A009G619-F1-model_v4       4000002 Bacteria        4000025 genus   Acinetobacter   family and lower than family
+# AF-A0A009HQ86-F1-model_v4       4000002 Bacteria        4000002 superkingdom    Bacteria        superkingdom
+# AF-A0A009I3I2-F1-model_v4       4000002 Bacteria        1       no rank root    root
+# AF-A0A009I6L8-F1-model_v4       4000002 Bacteria        4000002 superkingdom    Bacteria        superkingdom
+# AF-A0A009IEP7-F1-model_v4       4000002 Bacteria        4000025 genus   Acinetobacter   family and lower than family
+# AF-A0A009IHG3-F1-model_v4       4000002 Bacteria        4000002 superkingdom    Bacteria        superkingdom
+
+
+# 15_superkingdom_bar.ipynb
