@@ -1,0 +1,44 @@
+# extract the short proteins
+  awk '$2<800 {print $1}' 19_pred_novel_domains/TED_novel_containing-entryId_length.tsv | xargs -iFILE cp "19_pred_novel_domains/output/"FILE".pdb" "19_pred_novel_domains/output_short/"FILE".pdb"
+  ~/foldseek_from_web/foldseek/bin/foldseek createdb 19_pred_novel_domains/output_short/ 19_pred_novel_domains/database/TED_novel_ESM_short
+# long proteins
+  ~/foldseek_from_web/foldseek/bin/foldseek createdb 19_pred_novel_domains/output_long_chopped_domains_all 19_pred_novel_domains/database/TED_novel_ESM_long
+
+# plddt
+  # AFDB
+  python3 jupyter/19_domain_plddt_foldcomp.py 19_pred_novel_domains/TED_foldcomp 19_pred_novel_domains/TED_domain_info.tsv 19_pred_novel_domains/TED_AFDB_domain_plddt-entryId_avgPlddt.tsv
+  # ESM
+  # short
+    awk 'FNR==NR && $2<800 {id[$1]=1; next} FNR==NR {next} $1 in id {print $0}' 19_pred_novel_domains/TED_novel_containing-entryId_length.tsv 19_pred_novel_domains/TED_domain_info.tsv > 19_pred_novel_domains/TED_novel_domain_short
+    python3 jupyter/19_domain_plddt_pdb.py 19_pred_novel_domains/output_short/ 19_pred_novel_domains/TED_novel_domain_short 19_pred_novel_domains/TED_ESM_short_domain_plddt-entryId_avgPlddt.tsv
+  # long
+    python3 jupyter/19_plddt.py 19_pred_novel_domains/output_long_chopped_domains_all 19_pred_novel_domains/TED_ESM_long_domain_plddt-entryId_avgPlddt.tsv
+  # concatenation of short and long domains of ESM
+    awk 'FNR==NR {N=split($1, arr, "_"); entry=arr[1]"_"arr[2]; print entry"\t"$2*100; next;} FNR==1 {next} {print $1"\t"$2*100}' 19_pred_novel_domains/TED_ESM_long_domain_plddt-entryId_avgPlddt.tsv 19_pred_novel_domains/TED_ESM_short_domain_plddt-entryId_avgPlddt.tsv > 19_pred_novel_domains/TED_ESM_domain_plddt-entryId_avgPlddt.tsv
+  # concatenation of ESM and AFDB
+    awk 'FNR==NR {id[$1]=$2; next} {print $1"\t"id[$1]"\t"$2}' 19_pred_novel_domains/TED_AFDB_domain_plddt-entryId_avgPlddt.tsv 19_pred_novel_domains/TED_ESM_domain_plddt-entryId_avgPlddt.tsv > 19_pred_novel_domains/TED_AFDB_ESM_domain_plddt-entryId_AFDBavgPlddt_ESMavgPlddt.tsv
+
+# lddt
+  # chop the ESM short
+  ./jupyter/19_makefile_TED.sh 19_pred_novel_domains/database/TED_novel_ESM_short 19_pred_novel_domains/database/TED_novel_ESM_short_before 19_pred_novel_domains/database/TED_novel_ESM_short_after 19_pred_novel_domains/database/tmp/ 19_pred_novel_domains/TED_novel_domain_short > 19_pred_novel_domains/log_TED_novel_ESM_short_chopping
+  ./jupyter/19_makefile_TED_s2e.sh 19_pred_novel_domains/database/TED_novel_ESM_short 19_pred_novel_domains/database/TED_novel_ESM_short_s2e_before 19_pred_novel_domains/database/TED_novel_ESM_short_s2e_after 19_pred_novel_domains/database/tmp/ 19_pred_novel_domains/TED_novel_domain_short > 19_pred_novel_domains/log_TED_novel_ESM_short_s2e_chopping
+  # the db of predicted ESM
+    ~/foldseek_from_web/foldseek/bin/foldseek concatdbs 19_pred_novel_domains/database/TED_novel_ESM_short_s2e_after 19_pred_novel_domains/database/TED_novel_ESM_long 19_pred_novel_domains/database/TED_novel_ESM_db ;
+    ~/foldseek_from_web/foldseek/bin/foldseek concatdbs 19_pred_novel_domains/database/TED_novel_ESM_short_s2e_after_ss 19_pred_novel_domains/database/TED_novel_ESM_long_ss 19_pred_novel_domains/database/TED_novel_ESM_db_ss ;
+    ~/foldseek_from_web/foldseek/bin/foldseek concatdbs 19_pred_novel_domains/database/TED_novel_ESM_short_s2e_after_ca 19_pred_novel_domains/database/TED_novel_ESM_long_ca 19_pred_novel_domains/database/TED_novel_ESM_db_ca ;
+    ~/foldseek_from_web/foldseek/bin/foldseek concatdbs 19_pred_novel_domains/database/TED_novel_ESM_short_s2e_after_h 19_pred_novel_domains/database/TED_novel_ESM_long_h 19_pred_novel_domains/database/TED_novel_ESM_db_h
+  # chop the AFDB
+    /home/livinit/foldseek_from_web/foldseek/bin/foldseek createsubdb 19_pred_novel_domains/TED_novel_containing-entryId_length.tsv /fast/databases/foldseek/afdb/afdb 19_pred_novel_domains/database/TED_novel_afdb_db --id-mode 1 ;
+    /home/livinit/foldseek_from_web/foldseek/bin/foldseek createsubdb 19_pred_novel_domains/database/TED_novel_afdb_db.index /fast/databases/foldseek/afdb/afdb_ss 19_pred_novel_domains/database/TED_novel_afdb_db_ss ;
+    /home/livinit/foldseek_from_web/foldseek/bin/foldseek createsubdb 19_pred_novel_domains/database/TED_novel_afdb_db.index /fast/databases/foldseek/afdb/afdb_ca 19_pred_novel_domains/database/TED_novel_afdb_db_ca ;
+    /home/livinit/foldseek_from_web/foldseek/bin/foldseek createsubdb 19_pred_novel_domains/database/TED_novel_afdb_db.index /fast/databases/foldseek/afdb/afdb_h 19_pred_novel_domains/database/TED_novel_afdb_db_h
+    ./jupyter/19_makefile_s2e.sh 19_pred_novel_domains/database/TED_novel_afdb_db 19_pred_novel_domains/database/TED_novel_afdb_db_before 19_pred_novel_domains/database/TED_novel_afdb_db_after 19_pred_novel_domains/database/tmp/ 19_pred_novel_domains/TED_domain_info.tsv > 19_pred_novel_domains/log_TED_novel_AFDB_chopping
+  # search
+    /home/livinit/foldseek_from_web/foldseek/bin/foldseek search 19_pred_novel_domains/database/TED_novel_ESM_db 19_pred_novel_domains/database/TED_novel_afdb_db_after 19_pred_novel_domains/alignment/TED_novel_ESM_AFDB_search_aln_complete 19_pred_novel_domains/tmp -e INF -a    
+    /home/livinit/foldseek_from_web/foldseek/bin/foldseek convertalis 19_pred_novel_domains/database/TED_novel_ESM_db 19_pred_novel_domains/database/TED_novel_afdb_db_after 19_pred_novel_domains/alignment/TED_novel_ESM_AFDB_search_aln_complete 19_pred_novel_domains/alignment/TED_novel_ESM_AFDB_search_aln_complete_res --format-output query,target,alntmscore,lddt,evalue,qcov,tcov,qlen,tlen
+  # compute lddt
+    awk '$1!=$2 {next} {N=split($1, arr, "_"); entry=arr[1]"_"arr[2];} {nDomain[entry]++; slddt[entry]+=$4*$8; slen[entry]+=$8;} END {for (key in slen) print key"\t"slddt[key]/slen[key]"\t"slen[key]"\t"nDomain[key]}' 19_pred_novel_domains/alignment/TED_novel_ESM_AFDB_search_aln_complete_res > 19_pred_novel_domains/TED_ESM_AFDB_domain-entryId_lddt_slen_ndomain.tsv 
+
+
+# plddt and lddt concatenation
+awk 'FNR==NR {id[$1]=$2*100; next;} $1 in id {print $0"\t"id[$1]; next} {print $0"\t0"}' 19_pred_novel_domains/TED_ESM_AFDB_domain-entryId_lddt_slen_ndomain.tsv 19_pred_novel_domains/TED_AFDB_ESM_domain_plddt-entryId_AFDBavgPlddt_ESMavgPlddt.tsv > 19_pred_novel_domains/TED_AFDB_ESM_domain-entryId_AFDBavgPlddt_ESMavgPlddt_lddt.tsv

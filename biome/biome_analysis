@@ -1,0 +1,111 @@
+# We started with the MGnify biome annotation here: https://ftp.ebi.ac.uk/pub/databases/metagenomics/peptide_database/2023_02/mgy_biomes.tsv.gz
+# modifying the given file "mgy_clusters.tsv"
+awk -F "\t" '{
+    n = split($5, array, ";");
+    for (i = 1; i <= n; i++) {
+        print $1 "\t" array[i];
+    }
+}' mgy_clusters.tsv > LCA_mgy_clusters_repBiomes/mgy_clusters_repBiomes.tsv
+
+# calculate the LCA
+./new_LCA_rmMixed3 LCA_mgy_clusters_repBiomes/mgy_clusters_repBiomes.tsv 0 1 LCA_mgy_clusters_repBiomes/mgy_clusters_LCA-repBiomes.tsv
+
+# biome
+awk -F "\t" 'FNR==NR {id[$1]=$4; next} {print $0"\t"id[$2]}' /fast/yewon/new_2024_LCA_rmMixed/LCA_mgy_clusters_repBiomes/mgy_clusters_LCA-repBiomes.tsv cluster/afesm30-repId_allmemId_flag.tsv > annotation/afesm30-repId_allmemId_flag_memBiome.tsv
+awk '$4 {print $0}' annotation/afesm30-repId_allmemId_flag_memBiome.tsv > annotation/afesm30_wo_vacant_biome_col-repId_allmemId_flag_memBiome.tsv
+# compute the biome LCAs
+/fast/yewon/new_2024_LCA_rmMixed/new_LCA_ignoreMixed annotation/afesm30_wo_vacant_biome_col-repId_allmemId_flag_memBiome.tsv 0 3 ./metadata/afesm30-repId_nBiome_nLcaLen_biomeLca.tsv
+
+# biome-specific clusters
+awk -F "\t" '$2>=10 {print $4}' ./metadata/afesm30-repId_nBiome_nLcaLen_biomeLca.tsv > biome_analysis/afesm30_nBiomeGe10_biomes
+biome_analysis$ ./automated_krakenReportGen.sh afesm30_nBiomeGe10_biomes
+awk '$2>=10 && $3>1 {print $0}' metadata/afesm30-repId_nBiome_nLcaLen_biomeLca.tsv > biome_analysis/afesm30_nBiomeGe10-repId_nBiome_nLcaLen_biomeLca.tsv
+
+awk '$1=="root" {r++} $1~/.*Environmental.*/ {e++; next;} $1~/.*Engineered.*/ {g++} $1~/.*Host.*/ {h++} END {print "#clusters: "FNR"\nRoot: "r" "r/FNR*100"%\nEnvironmental: "e" "e/FNR*100"%\nEngineered: "g" "g/FNR*100"%\nHost: "h" "h/FNR*100"%"}' ../afesm5/biome_analysis/afesm30_nBiomeGe10_biomes > 22_biome_analysis/specificity_count
+# #clusters: 1815830
+# Root: 1525591 84.0162%
+# Environmental: 220964 12.1688%
+# Engineered: 3431 0.188949%
+# Host: 65844 3.62611%
+
+# Human:Digestive System
+grep Human:Digestive ../afesm5/biome_analysis/afesm30_nBiomeGe10-repId_nBiome_nLcaLen_biomeLca.tsv > 30_biome_specific/Human_Digestive_afesm30_nBiomeGe10-repId_nBiome_nLcaLen_biomeLca.tsv
+awk 'FNR==NR {id[$1]=1; next} $2 in id {print $0}' 30_biome_specific/Human_Digestive_afesm30_nBiomeGe10-repId_nBiome_nLcaLen_biomeLca.tsv /fast/jingi/esmfold/databases/afesm.lookup > 30_biome_specific/Human_Digestive_afesm30_nBiomeGe10.lookup
+mmseqs createsubdb 30_biome_specific/Human_Digestive_afesm30_nBiomeGe10.lookup 15_n_genus/tax_lca/afesm30_allMem_lca_blacklist 30_biome_specific/Human_Digestive_afesm30_nBiomeGe10_lca
+mmseqs taxonomyreport /fast/jingi/esmfold/databases/afesm 30_biome_specific/Human_Digestive_afesm30_nBiomeGe10_lca 30_biome_specific/Human_Digestive_afesm30_nBiomeGe10_lca_report
+
+# Human:Skin
+keyword="Human:Skin"
+grep $keyword ../afesm5/biome_analysis/afesm30_nBiomeGe10-repId_nBiome_nLcaLen_biomeLca.tsv > 30_biome_specific/${keyword}_afesm30_nBiomeGe10-repId_nBiome_nLcaLen_biomeLca.tsv ;
+awk 'FNR==NR {id[$1]=1; next} $2 in id {print $0}' 30_biome_specific/${keyword}_afesm30_nBiomeGe10-repId_nBiome_nLcaLen_biomeLca.tsv /fast/jingi/esmfold/databases/afesm.lookup > 30_biome_specific/${keyword}_afesm30_nBiomeGe10.lookup ;
+mmseqs createsubdb 30_biome_specific/${keyword}_afesm30_nBiomeGe10.lookup 15_n_genus/tax_lca/afesm30_allMem_lca_blacklist 30_biome_specific/${keyword}_afesm30_nBiomeGe10_lca ;
+mmseqs taxonomyreport /fast/jingi/esmfold/databases/afesm 30_biome_specific/${keyword}_afesm30_nBiomeGe10_lca 30_biome_specific/${keyword}_afesm30_nBiomeGe10_lca_report ;
+
+# Plant
+grep Plant ../afesm5/biome_analysis/afesm30_nBiomeGe10-repId_nBiome_nLcaLen_biomeLca.tsv > 30_biome_specific/Plant_afesm30_nBiomeGe10-repId_nBiome_nLcaLen_biomeLca.tsv
+awk 'FNR==NR {id[$1]=1; next} $2 in id {print $0}' 30_biome_specific/Plant_afesm30_nBiomeGe10-repId_nBiome_nLcaLen_biomeLca.tsv /fast/jingi/esmfold/databases/afesm.lookup > 30_biome_specific/Plant_afesm30_nBiomeGe10.lookup
+mmseqs createsubdb 30_biome_specific/Plant_afesm30_nBiomeGe10.lookup 15_n_genus/tax_lca/afesm30_allMem_lca_blacklist 30_biome_specific/Plant_afesm30_nBiomeGe10_lca
+mmseqs taxonomyreport /fast/jingi/esmfold/databases/afesm 30_biome_specific/Plant_afesm30_nBiomeGe10_lca 30_biome_specific/Plant_afesm30_nBiomeGe10_lca_report
+
+# Air
+keyword="Air"
+grep $keyword ../afesm5/biome_analysis/afesm30_nBiomeGe10-repId_nBiome_nLcaLen_biomeLca.tsv > 30_biome_specific/${keyword}_afesm30_nBiomeGe10-repId_nBiome_nLcaLen_biomeLca.tsv ;
+awk 'FNR==NR {id[$1]=1; next} $2 in id {print $0}' 30_biome_specific/${keyword}_afesm30_nBiomeGe10-repId_nBiome_nLcaLen_biomeLca.tsv /fast/jingi/esmfold/databases/afesm.lookup > 30_biome_specific/${keyword}_afesm30_nBiomeGe10.lookup ;
+mmseqs createsubdb 30_biome_specific/${keyword}_afesm30_nBiomeGe10.lookup 15_n_genus/tax_lca/afesm30_allMem_lca_blacklist 30_biome_specific/${keyword}_afesm30_nBiomeGe10_lca ;
+mmseqs taxonomyreport /fast/jingi/esmfold/databases/afesm 30_biome_specific/${keyword}_afesm30_nBiomeGe10_lca 30_biome_specific/${keyword}_afesm30_nBiomeGe10_lca_report ;
+
+# Soil
+keyword="Soil" ;
+grep $keyword ../afesm5/biome_analysis/afesm30_nBiomeGe10-repId_nBiome_nLcaLen_biomeLca.tsv > 30_biome_specific/${keyword}_afesm30_nBiomeGe10-repId_nBiome_nLcaLen_biomeLca.tsv ; 
+awk 'FNR==NR {id[$1]=1; next} $2 in id {print $0}' 30_biome_specific/${keyword}_afesm30_nBiomeGe10-repId_nBiome_nLcaLen_biomeLca.tsv /fast/jingi/esmfold/databases/afesm.lookup > 30_biome_specific/${keyword}_afesm30_nBiomeGe10.lookup ;
+mmseqs createsubdb 30_biome_specific/${keyword}_afesm30_nBiomeGe10.lookup 15_n_genus/tax_lca/afesm30_allMem_lca_blacklist 30_biome_specific/${keyword}_afesm30_nBiomeGe10_lca ;
+mmseqs taxonomyreport /fast/jingi/esmfold/databases/afesm 30_biome_specific/${keyword}_afesm30_nBiomeGe10_lca 30_biome_specific/${keyword}_afesm30_nBiomeGe10_lca_report ;
+
+# Terrestrial:Soil
+keyword="Terrestrial:Soil" ;
+grep $keyword ../afesm5/biome_analysis/afesm30_nBiomeGe10-repId_nBiome_nLcaLen_biomeLca.tsv > 30_biome_specific/${keyword}_afesm30_nBiomeGe10-repId_nBiome_nLcaLen_biomeLca.tsv ; 
+awk 'FNR==NR {id[$1]=1; next} $2 in id {print $0}' 30_biome_specific/${keyword}_afesm30_nBiomeGe10-repId_nBiome_nLcaLen_biomeLca.tsv /fast/jingi/esmfold/databases/afesm.lookup > 30_biome_specific/${keyword}_afesm30_nBiomeGe10.lookup ;
+mmseqs createsubdb 30_biome_specific/${keyword}_afesm30_nBiomeGe10.lookup 15_n_genus/tax_lca/afesm30_allMem_lca_blacklist 30_biome_specific/${keyword}_afesm30_nBiomeGe10_lca ;
+mmseqs taxonomyreport /fast/jingi/esmfold/databases/afesm 30_biome_specific/${keyword}_afesm30_nBiomeGe10_lca 30_biome_specific/${keyword}_afesm30_nBiomeGe10_lca_report ;
+
+# Wastewater
+keyword="Wastewater" ;
+grep $keyword ../afesm5/biome_analysis/afesm30_nBiomeGe10-repId_nBiome_nLcaLen_biomeLca.tsv > 30_biome_specific/${keyword}_afesm30_nBiomeGe10-repId_nBiome_nLcaLen_biomeLca.tsv ; 
+awk 'FNR==NR {id[$1]=1; next} $2 in id {print $0}' 30_biome_specific/${keyword}_afesm30_nBiomeGe10-repId_nBiome_nLcaLen_biomeLca.tsv /fast/jingi/esmfold/databases/afesm.lookup > 30_biome_specific/${keyword}_afesm30_nBiomeGe10.lookup ;
+mmseqs createsubdb 30_biome_specific/${keyword}_afesm30_nBiomeGe10.lookup 15_n_genus/tax_lca/afesm30_allMem_lca_blacklist 30_biome_specific/${keyword}_afesm30_nBiomeGe10_lca ;
+mmseqs taxonomyreport /fast/jingi/esmfold/databases/afesm 30_biome_specific/${keyword}_afesm30_nBiomeGe10_lca 30_biome_specific/${keyword}_afesm30_nBiomeGe10_lca_report ;
+
+# Lab
+keyword="Lab" ;
+grep $keyword ../afesm5/biome_analysis/afesm30_nBiomeGe10-repId_nBiome_nLcaLen_biomeLca.tsv > 30_biome_specific/${keyword}_afesm30_nBiomeGe10-repId_nBiome_nLcaLen_biomeLca.tsv ; 
+awk 'FNR==NR {id[$1]=1; next} $2 in id {print $0}' 30_biome_specific/${keyword}_afesm30_nBiomeGe10-repId_nBiome_nLcaLen_biomeLca.tsv /fast/jingi/esmfold/databases/afesm.lookup > 30_biome_specific/${keyword}_afesm30_nBiomeGe10.lookup ;
+mmseqs createsubdb 30_biome_specific/${keyword}_afesm30_nBiomeGe10.lookup 15_n_genus/tax_lca/afesm30_allMem_lca_blacklist 30_biome_specific/${keyword}_afesm30_nBiomeGe10_lca ;
+mmseqs taxonomyreport /fast/jingi/esmfold/databases/afesm 30_biome_specific/${keyword}_afesm30_nBiomeGe10_lca 30_biome_specific/${keyword}_afesm30_nBiomeGe10_lca_report ;
+
+# Marine
+keyword="Marine" ;
+grep $keyword ../afesm5/biome_analysis/afesm30_nBiomeGe10-repId_nBiome_nLcaLen_biomeLca.tsv > 30_biome_specific/${keyword}_afesm30_nBiomeGe10-repId_nBiome_nLcaLen_biomeLca.tsv ; 
+awk 'FNR==NR {id[$1]=1; next} $2 in id {print $0}' 30_biome_specific/${keyword}_afesm30_nBiomeGe10-repId_nBiome_nLcaLen_biomeLca.tsv /fast/jingi/esmfold/databases/afesm.lookup > 30_biome_specific/${keyword}_afesm30_nBiomeGe10.lookup ;
+mmseqs createsubdb 30_biome_specific/${keyword}_afesm30_nBiomeGe10.lookup 15_n_genus/tax_lca/afesm30_allMem_lca_blacklist 30_biome_specific/${keyword}_afesm30_nBiomeGe10_lca ;
+mmseqs taxonomyreport /fast/jingi/esmfold/databases/afesm 30_biome_specific/${keyword}_afesm30_nBiomeGe10_lca 30_biome_specific/${keyword}_afesm30_nBiomeGe10_lca_report ;
+
+# Aquatic:Marine
+keyword="Aquatic:Marine" ;
+grep $keyword ../afesm5/biome_analysis/afesm30_nBiomeGe10-repId_nBiome_nLcaLen_biomeLca.tsv > 30_biome_specific/${keyword}_afesm30_nBiomeGe10-repId_nBiome_nLcaLen_biomeLca.tsv ; 
+awk 'FNR==NR {id[$1]=1; next} $2 in id {print $0}' 30_biome_specific/${keyword}_afesm30_nBiomeGe10-repId_nBiome_nLcaLen_biomeLca.tsv /fast/jingi/esmfold/databases/afesm.lookup > 30_biome_specific/${keyword}_afesm30_nBiomeGe10.lookup ;
+mmseqs createsubdb 30_biome_specific/${keyword}_afesm30_nBiomeGe10.lookup 15_n_genus/tax_lca/afesm30_allMem_lca_blacklist 30_biome_specific/${keyword}_afesm30_nBiomeGe10_lca ;
+mmseqs taxonomyreport /fast/jingi/esmfold/databases/afesm 30_biome_specific/${keyword}_afesm30_nBiomeGe10_lca 30_biome_specific/${keyword}_afesm30_nBiomeGe10_lca_report ;
+
+# Food
+keyword="Food" ;
+grep $keyword ../afesm5/biome_analysis/afesm30_nBiomeGe10-repId_nBiome_nLcaLen_biomeLca.tsv > 30_biome_specific/${keyword}_afesm30_nBiomeGe10-repId_nBiome_nLcaLen_biomeLca.tsv ; 
+awk 'FNR==NR {id[$1]=1; next} $2 in id {print $0}' 30_biome_specific/${keyword}_afesm30_nBiomeGe10-repId_nBiome_nLcaLen_biomeLca.tsv /fast/jingi/esmfold/databases/afesm.lookup > 30_biome_specific/${keyword}_afesm30_nBiomeGe10.lookup ;
+mmseqs createsubdb 30_biome_specific/${keyword}_afesm30_nBiomeGe10.lookup 15_n_genus/tax_lca/afesm30_allMem_lca_blacklist 30_biome_specific/${keyword}_afesm30_nBiomeGe10_lca ;
+mmseqs taxonomyreport /fast/jingi/esmfold/databases/afesm 30_biome_specific/${keyword}_afesm30_nBiomeGe10_lca 30_biome_specific/${keyword}_afesm30_nBiomeGe10_lca_report ;
+
+# Salt
+keyword="Salt" ;
+grep $keyword ../afesm5/biome_analysis/afesm30_nBiomeGe10-repId_nBiome_nLcaLen_biomeLca.tsv > 30_biome_specific/${keyword}_afesm30_nBiomeGe10-repId_nBiome_nLcaLen_biomeLca.tsv ; 
+awk 'FNR==NR {id[$1]=1; next} $2 in id {print $0}' 30_biome_specific/${keyword}_afesm30_nBiomeGe10-repId_nBiome_nLcaLen_biomeLca.tsv /fast/jingi/esmfold/databases/afesm.lookup > 30_biome_specific/${keyword}_afesm30_nBiomeGe10.lookup ;
+mmseqs createsubdb 30_biome_specific/${keyword}_afesm30_nBiomeGe10.lookup 15_n_genus/tax_lca/afesm30_allMem_lca_blacklist 30_biome_specific/${keyword}_afesm30_nBiomeGe10_lca ;
+mmseqs taxonomyreport /fast/jingi/esmfold/databases/afesm 30_biome_specific/${keyword}_afesm30_nBiomeGe10_lca 30_biome_specific/${keyword}_afesm30_nBiomeGe10_lca_report ;

@@ -1,0 +1,29 @@
+# Data download
+# TED_novel_domain_list is from https://zenodo.org/records/13908086
+wget https://zenodo.org/records/13908086/files/novel_folds_set.domain_summary.tsv.gz -O 19_pred_novel_domains/novel_folds_set.domain_summary.tsv.gz
+
+# foldcomp for the proteins that have TED novel domains
+~/mmseqs2_from_web/mmseqs/bin/mmseqs createsubdb 19_pred_novel_domains/TED_novel_domain_list ../afesm/database/afesm_foldcomp 19_pred_novel_domains/TED_foldcomp --id-mode 1
+
+# fasta file generation
+/home/livinit/foldcomp/foldcomp/foldcomp/build/foldcomp extract --fasta 19_pred_novel_domains/TED_foldcomp 19_pred_novel_domains/TED.fasta -t 32
+
+# Prediction by ESMfold
+srun -p gpu -w devbox002 --gres=gpu:1 -t 5-0 python3 19_pred_novel_domains/esmfold_bulk_argv_size_constraint.py 19_pred_novel_domains/TED.fasta 19_pred_novel_domains/output 0 20 5 32 0 800
+srun -p gpu -w devbox002 --gres=gpu:1 -t 5-0 python3 19_pred_novel_domains/esmfold_bulk_argv_size_constraint.py 19_pred_novel_domains/TED.fasta 19_pred_novel_domains/output 20 7427 10 32 0 800 # Predicted 6386 sequences
+srun -p gpu -w devbox002 --gres=gpu:1 -t 5-0 python3 19_pred_novel_domains/esmfold_bulk_argv_size_constraint.py 19_pred_novel_domains/TED.fasta 19_pred_novel_domains/output 20 7427 1 8 801 4000 > 19_pred_novel_domains/log_long
+srun -p gpu -w devbox002 --gres=gpu:1 -t 5-0 python3 19_pred_novel_domains/esmfold_bulk_argv_size_constraint.py 19_pred_novel_domains/TED.fasta 19_pred_novel_domains/output 338 7427 1 8 801 4000 > 19_pred_novel_domains/log_long_2
+srun -p gpu -w devbox002 --gres=gpu:1 -t 5-0 python3 19_pred_novel_domains/esmfold_bulk_argv_size_constraint.py 19_pred_novel_domains/TED.fasta 19_pred_novel_domains/output 3089 7427 1 8 801 4000 > 19_pred_novel_domains/log_long_3
+
+####### 이 예측 코멘드가 맞는 듯? 
+# predict short fasta
+srun -p gpu -w devbox002 --gres=gpu:1 -t 5-0 python3 19_pred_novel_domains/esmfold_bulk_argv_size_constraint.py 19_pred_novel_domains/TED_missing_short.fasta 19_pred_novel_domains/output 0 20 40 32 0 1000 > 19_pred_novel_domains/log_missing_short
+
+# chop the long proteins
+python jupyter/23_sequence_chopping_s2e.py 19_pred_novel_domains/novel_folds_set.domain_summary.tsv 19_pred_novel_domains/TED_missing_long.fasta 19_pred_novel_domains/TED_missing_long_domains.fasta
+# predict the chopped domains
+srun -p gpu -w devbox002 --gres=gpu:2 -t 5-0 python3 19_pred_novel_domains/esmfold_bulk_argv_size_constraint.py 19_pred_novel_domains/TED_missing_long_domains.fasta 19_pred_novel_domains/output_long_chopped_domains 0 980 20 64 0 4000 > 19_pred_novel_domains/log_missing_long_domains
+# chop the long proteins (all)
+python jupyter/23_sequence_chopping_s2e.py 19_pred_novel_domains/novel_folds_set.domain_summary.tsv 19_pred_novel_domains/TED_long.fasta 19_pred_novel_domains/TED_long_domains.fasta
+srun -p gpu -w devbox002 --gres=gpu:4 -t 5-0 python3 19_pred_novel_domains/esmfold_bulk_argv_size_constraint.py 19_pred_novel_domains/TED_long_domains.fasta 19_pred_novel_domains/output_long_chopped_domains_all 0 1010 40 64 0 4000 > 19_pred_novel_domains/log_long_domains_all
+
