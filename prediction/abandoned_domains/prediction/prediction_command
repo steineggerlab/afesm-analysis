@@ -1,0 +1,53 @@
+# We splitted the MSAs and predicted it parallelly
+# The split worked like this
+find  MSAs/sequence_chopped_msa_batch00_unpredicted_r02/ -type f > msa_batch00_2000/batch00_r02_msa_filenames
+split -d -l 2000 msa_batch00_2000/batch00_r02_msa_filenames msa_batch00_2000/batch00_r02_msa_filenames_batch
+./mv_batch00_2000.sh
+
+# predict the batched MSAs
+# 2000 entry batches
+./preds_batch00_2000_gpu.sh devbox001 1 8
+./preds_batch00_2000_gpu_manage_cycle.sh devbox001 9 89 8 > log_batch00_9_to_89
+
+# Batch01
+find MSAs/sequence_chopped_msa_batch01_unpredicted_r02 -type f > msa_batch01_2000/batch01_r02_msa_filenames;
+split -d -l 2000 msa_batch01_2000/batch01_r02_msa_filenames msa_batch01_2000/batch01_r02_msa_filenames_batch
+./mv_batch01_2000.sh
+./preds_batch01_2000_gpu_manage_cycle.sh devbox002 1 89 8 > log_batch01_1_to_89
+./preds_batch01_2000_gpu_manage_cycle.sh devbox002 9000 9043 7 > log_batch01_9000_to_9043
+./preds_batch_2000_gpu_manage_cycle.sh devbox001 0 0 1 batch01 > log_batch01_0_to_0 # ERROR
+./preds_batch01_2000_gpu_manage_cycle.sh devbox001 0 0 1 > log_batch01_0_to_0_2
+
+# Batch02
+./batch_argv.sh MSAs/sequence_chopped_msa_batch02_unpredicted_r02/ 02
+./preds_batch02_2000_gpu_manage_cycle.sh devbox002 1 89 7 > log_batch02_1_to_89
+./preds_batch02_2000_gpu_manage_cycle.sh devbox002 9000 9027 7 > log_batch02_9000_to_9027
+./preds_batch_2000_gpu_manage_cycle.sh devbox001 0 0 1 batch02 > log_batch02_0_to_0
+
+# Batch03
+./batch_argv.sh MSAs/sequence_chopped_msa_batch03_unpredicted/ 03
+./preds_batch03_2000_gpu_manage_cycle.sh devbox001 1 89 7 > log_batch03_1_to_89
+./preds_batch03_2000_gpu_manage_cycle.sh devbox001 9000 9054 7 > log_batch03_9000_to_9054
+./preds_batch_2000_gpu_manage_cycle.sh devbox001 0 0 1 batch03 > log_batch03_0_to_0
+
+# Batch04
+./batch_argv.sh MSAs/sequence_chopped_msa_batch04/ 04
+./preds_batch04_2000_gpu_manage_cycle.sh devbox002 1 89 8 > log_batch04_1_to_89
+./preds_batch04_2000_gpu_manage_cycle.sh devbox001 9000 9054 7 > log_batch04_9000_to_9054
+./preds_batch04_2000_gpu_manage_cycle.sh devbox001 9000 9054 7 > log_batch04_9000_to_9054_2
+./preds_batch_2000_gpu_manage_cycle.sh devbox001 0 0 1 batch04 > log_batch04_0_to_0
+
+# Batch05
+./batch_argv.sh MSAs/sequence_chopped_msa_batch05_unpredicted/ 05 &
+./preds_batch_2000_gpu_manage_cycle.sh devbox002 0 89 7 batch05 > log_batch05_0_to_89
+./preds_batch_2000_gpu_manage_cycle.sh devbox002 25 89 7 batch05 > log_batch05_25_to_895
+./preds_batch_2000_gpu_manage_cycle.sh devbox002 9000 9054 4 batch05 > log_batch05_9000_to_9054
+
+# Batch06
+./preds_batch_2000_gpu_manage_cycle.sh devbox001 0 89 7 batch06 > log_batch06_0_to_89
+./preds_batch_2000_gpu_manage_cycle.sh devbox001 9000 9054 7 batch06 > log_batch06_9000_to_9054
+# ./batch_argv.sh MSAs/sequence_chopped_msa_batch06_unpredicted/ 06 &
+# Batch07
+./preds_batch_2000_gpu_manage_cycle.sh devbox002 0 89 7 batch07 > log_batch07_0_to_89
+./preds_batch_2000_gpu_manage_cycle.sh devbox002 9000 9054 3 batch07 > log_batch07_9000_to_9054
+# ./batch_argv.sh MSAs/sequence_chopped_msa_batch07_unpredicted/ 07 &

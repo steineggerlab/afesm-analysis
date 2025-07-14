@@ -1,0 +1,10 @@
+gunzip -c 23_abandoned_domains/allreps_lowqual_entries.gz > 23_abandoned_domains/allreps_lowqual_domains
+shuf 23_abandoned_domains/allreps_lowqual_domains > 23_abandoned_domains/allreps_lowqual_domains_shuf
+split -d -n 8 23_abandoned_domains/allreps_lowqual_domains_shuf 23_abandoned_domains/allreps_lowqual_domains_shuf_batch
+
+# iterate from batch 00 to 07
+awk 'FNR==NR {id[">"$1]=1; next;} FNR%2==0 {if (p) print k"\n"$0; p=0; next;} FNR%2==1 {N=split($1, arr, "_"); l=arr[1]"_"arr[2];} l in id {p=1; k=$0}' 23_abandoned_domains/allreps_lowqual_domains_shuf_batch00 23_abandoned_domains/domains_extracted_s2e.fasta > 23_abandoned_domains/domains_extracted_s2e_batch00.fasta
+./23_abandoned_domains/colabfold_search_pty_argv.sh 23_abandoned_domains/domains_extracted_s2e_batch00.fasta $SCRATCH/sequence_chopped_msa_batch00 > $SCRATCH/log_batch00
+awk 'FNR==NR {id[">"$1]=1; next;} FNR%2==0 {if (p) print k"\n"$0; p=0; next;} FNR%2==1 {N=split($1, arr, "_"); l=arr[1]"_"arr[2];} l in id {p=1; k=$0}' 23_abandoned_domains/allreps_lowqual_domains_shuf_batch01 23_abandoned_domains/domains_extracted_s2e.fasta > 23_abandoned_domains/domains_extracted_s2e_batch01.fasta
+./23_abandoned_domains/colabfold_search_pty_argv.sh 23_abandoned_domains/domains_extracted_s2e_batch01.fasta $SCRATCH/sequence_chopped_msa_batch01 > $SCRATCH/log_batch01
+
