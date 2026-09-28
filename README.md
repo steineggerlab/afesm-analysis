@@ -49,9 +49,12 @@ afesm-analysis/
 ├── concate_clustering/           # Concatenation and clustering of AFDB & ESMatlas
 ├── taxonomy/                     # Assignment of taxonomy
 ├── biome/                        # Environmental biome context analysis
+│   └── mdp_biome_enrichment/     # LCB enrichment for novel MDPs (Supp. Table 5)
 ├── prediction/                   # Domain boundary prediction and pLDDT comparison
+│   └── rescued_vs_unrescued/     # AF2-ColabFold rescue quality analysis (Supp. Fig. 9b-d)
 ├── novel_fold_analyses/          # Core novel domain discovery and quality filtering
 ├── multidomain_analysis/         # Multi-domain protein architecture analysis
+│   └── mdp_artefact_check/       # Novel vs Non-novel MDP comparison (Supp. Fig. 14)
 └── analysis_10k_subset_sampling/ # 10k sampling for ColabFold reprediction
 ```
 
@@ -79,6 +82,8 @@ Links novel domains to environmental contexts via MGnify biome classifications.
 - `biome_analysis` — Maps proteins to biomes; generates biome-specific LCB profiles
 - `30_superkingdom_summary.ipynb` — Superkingdom distributions stratified by biome
 
+**`mdp_biome_enrichment/`** — Computes LCB assignment rates for novel vs non-novel MDPs (Supplementary Table 5). Shows that the enrichment (57.5% vs 42.2%) is driven by cluster membership size (133 vs 65 average members) rather than intrinsic biome differences.
+
 ### `prediction/`
 
 Compares structure predictions from AFDB and ESMFold and extracts per-domain pLDDT metrics.
@@ -86,6 +91,7 @@ Compares structure predictions from AFDB and ESMFold and extracts per-domain pLD
 **Subdirectories:**
 - `TED_novel_domains/` — Notebooks and scripts comparing AlphaFold vs ESMFold pLDDT for ~7,415 TED novel domains; identifies ~1,948 domains lacking cross-method alignment
 - `abandoned_domains/` — Analysis of domains initially predicted but later excluded from the main dataset
+- `rescued_vs_unrescued/` — Compares 1,000 AF2-ColabFold rescued vs 1,000 unrescued domains from the 2.3M low-quality pool by IUPred3 disorder, Neff, and domain length (Supplementary Figure 9b-d)
 
 **Key scripts:**
 - `AFDB_ESM_complete.ipynb` — Density plot comparison of AFDB vs ESMFold confidence scores
@@ -133,7 +139,9 @@ Identifies novel multi-domain combinations and tests for statistical over/under-
 - `log2foldRatio_log10p-val.sh` — Log2 fold enrichment and -log10(p-value)
 - `count_novel_notNovel.sh` — Compare novel vs known combination counts
 
-`visualization/` — Jupyter notebooks for main and supplementary publication figures (Fig. 6a–d, Suppl. Fig. 12, Suppl. Tables 1–2)
+`mdp_artefact_check/` — Architecture-level comparison of Novel (n=5,203) vs Non-novel (n=134,576) H-level MDPs (Supplementary Figure 14). Tests whether unexpected domain pairings can be explained by fragmentation artefacts by comparing domain count, CATH-annotation fraction, and mean domain length per MDP.
+
+`visualization/` — Jupyter notebooks and table generators for main and supplementary publication figures, including DeepFRI GO annotation table (Supplementary Table 2) and biome LCB distribution table (Supplementary Table 5).
 
 ## Key Quality Thresholds
 
