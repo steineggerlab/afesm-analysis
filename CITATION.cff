@@ -25,11 +25,8 @@ authors:
     given-names: Christine
   - family-names: Steinegger
     given-names: Martin
-version: 1.0.0
-date-released: 2026-09-30
 url: "https://github.com/steineggerlab/afesm-analysis"
 repository-code: "https://github.com/steineggerlab/afesm-analysis"
-license: MIT
 preferred-citation:
   type: article
   title: "Metagenomic-scale analysis of the predicted protein structure universe"
