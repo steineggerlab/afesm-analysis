@@ -1,0 +1,60 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "AFESM Analysis"
+type: software
+authors:
+  - family-names: Yeo
+    given-names: Jingi
+  - family-names: Han
+    given-names: Yewon
+  - family-names: Bordin
+    given-names: Nicola
+  - family-names: Lau
+    given-names: Andy M.
+  - family-names: Kandathil
+    given-names: Shaun M.
+  - family-names: Kim
+    given-names: Hyunbin
+  - family-names: Levy Karin
+    given-names: Eli
+  - family-names: Mirdita
+    given-names: Milot
+  - family-names: Jones
+    given-names: David T.
+  - family-names: Orengo
+    given-names: Christine
+  - family-names: Steinegger
+    given-names: Martin
+version: 1.0.0
+date-released: 2026-09-30
+url: "https://github.com/steineggerlab/afesm-analysis"
+repository-code: "https://github.com/steineggerlab/afesm-analysis"
+license: MIT
+preferred-citation:
+  type: article
+  title: "Metagenomic-scale analysis of the predicted protein structure universe"
+  authors:
+    - family-names: Yeo
+      given-names: Jingi
+    - family-names: Han
+      given-names: Yewon
+    - family-names: Bordin
+      given-names: Nicola
+    - family-names: Lau
+      given-names: Andy M.
+    - family-names: Kandathil
+      given-names: Shaun M.
+    - family-names: Kim
+      given-names: Hyunbin
+    - family-names: Levy Karin
+      given-names: Eli
+    - family-names: Mirdita
+      given-names: Milot
+    - family-names: Jones
+      given-names: David T.
+    - family-names: Orengo
+      given-names: Christine
+    - family-names: Steinegger
+      given-names: Martin
+  journal: "Nature Communications"
+  year: 2026
