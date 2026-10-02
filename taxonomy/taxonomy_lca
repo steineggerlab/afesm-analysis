@@ -7,7 +7,7 @@ mmseqs lca /fast/jingi/esmfold/databases/afesm ../afesm5/cluster/afesm30-repId_a
 mmseqs taxonomyreport /fast/jingi/esmfold/databases/afesm 15_n_genus/tax_lca/afesm30_allMem_lca_blacklist 15_n_genus/tax_lca/afesm30_allMem_lca_blacklist_report
 mmseqs createtsv /fast/jingi/esmfold/databases/afesm 15_n_genus/tax_lca/afesm30_allMem_lca_blacklist 15_n_genus/tax_lca/afesm30_allMem_lca_blacklist.tsv
 
-# jupyter/descendant_mapper.ipynb
+# tax_rank_grouping.py
 # output: coreness/grouping_w_merged_dmp_gtdb-taxId_taxName_taxRank_groupName.tsv
 
 # lca non singleton

@@ -123,3 +123,17 @@ struct_cluster_afesm() {
 
   echo "$FUNCNAME finished";
 }
+
+#####################################
+###### Cluster reassignment    ######
+#####################################
+# re-cluster with --cluster-reassign 1 to reassign the members violating the thresholds (Methods step 4)
+# this is the final structure clustering used in all the downstream analyses
+struct_cluster_reassign_afesm() {
+  echo "$FUNCNAME called";
+
+  foldseek cluster /fast/esmfold/databases/afesm30_repseq /share/afesm5/cluster/afesm30_repseq_foldseek_clu /mnt/scratch/tmp -c 0.9 -e 0.01 --cluster-reassign 1
+  foldseek createtsv /fast/esmfold/databases/afesm30_repseq /fast/esmfold/databases/afesm30_repseq /share/afesm5/cluster/afesm30_repseq_foldseek_clu /share/afesm5/cluster/afesm30_repseq_foldseek_clu.tsv
+
+  echo "$FUNCNAME finished";
+}
